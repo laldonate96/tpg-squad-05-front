@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import NewTaskPopUp from './NewTaskPopUp';
+import ModifyTaskPopup from './ModifyTaskWork';
 
 interface Task {
   id: number;
@@ -16,6 +17,8 @@ const CalendarView = () => {
   const [startDate, setStartDate] = useState<Date>(new Date());
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [isModifyPopupOpen, setIsModifyPopupOpen] = useState(false);
+  const [taskToModify, setTaskToModify] = useState<Task | null>(null);
 
   useEffect(() => {
     fetch('https://squad05-2024-2c.onrender.com/task-work')
@@ -78,6 +81,33 @@ const CalendarView = () => {
       console.error('Error deleting task:', error);
     }
   }
+
+  const handleModifyTask = (task: Task) => {
+    setTaskToModify(task);
+    setIsModifyPopupOpen(true);
+  };
+
+  const handleModifySubmit = async (newHours: number) => {
+    if (!taskToModify) return;
+
+    try {
+      const response = await fetch(`https://squad05-2024-2c.onrender.com/task-work/${taskToModify.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newHours),
+      });
+
+      if (response.ok) {
+        const updatedTasks = await fetch('https://squad05-2024-2c.onrender.com/task-work').then(res => res.json());
+        setTasks(updatedTasks); // Update the task list
+        setIsModifyPopupOpen(false); // Close the popup
+      }
+    } catch (error) {
+      console.error('Error modifying task:', error);
+    }
+  };
 
   const handlePreviousWeek = () => {
     const newStartDate = new Date(startDate);
@@ -177,6 +207,9 @@ const CalendarView = () => {
                         <button onClick={() => handleDeleteTaskWork(task.id)}>
                           <Image src="/delete.svg" alt="delete" width={20} height={20} />
                         </button>
+                        <button onClick={() => handleModifyTask(task)}>
+                          <Image src="/lapicito.svg" alt="modify" width={20} height={20} />
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -200,7 +233,17 @@ const CalendarView = () => {
         selectedDate={selectedDate}
         onSubmit={handleSubmitTask}
       />
+      {taskToModify && (
+        <ModifyTaskPopup
+          isOpen={isModifyPopupOpen}
+          onClose={() => setIsModifyPopupOpen(false)}
+          taskName={taskToModify.taskName}
+          initialHours={taskToModify.hours}
+          onSubmit={handleModifySubmit}
+        />
+      )}
     </div>
+
   );
 };
 
