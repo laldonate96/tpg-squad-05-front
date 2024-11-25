@@ -4,6 +4,7 @@ import Image from 'next/image';
 import NewTaskPopUp from './NewTaskPopUp';
 import ModifyTaskPopup from './ModifyTaskWork';
 import Cookies from 'js-cookie';
+import ProfileSelector from './ProfileSelector';
 
 interface Task {
   id: number;
@@ -185,18 +186,14 @@ const CalendarView = () => {
     <div className="bg-gray w-full max-w-6xl mx-auto p-4">
       <div className="flex justify-end mb-4">
         <div className="flex items-center gap-2 justify-end mb-4">
-          <span className="text-white font-semibold">Switch Profile:</span>
-            <select
-              value={resourceId}
-              onChange={handleResourceChange}
-              className="border-2 border-gray-600 rounded-lg p-2 bg-white"
-            >
-            {resources.map(resource => (
-              <option key={resource.id} value={resource.id}>
-                {resource.nombre} {resource.apellido}
-              </option>
-            ))}
-          </select>
+          <ProfileSelector
+            resources={resources}
+            selectedId={resourceId}
+            onChange={(id) => {
+              setResourceId(id);
+              Cookies.set('resourceId', id);
+            }}
+          />
         </div>
       </div>
 
