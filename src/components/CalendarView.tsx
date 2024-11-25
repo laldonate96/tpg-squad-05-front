@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import NewTaskPopUp from './NewTaskPopUp';
 
 interface Task {
   id: number;
@@ -12,7 +13,9 @@ interface Task {
 
 const CalendarView = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [startDate, setStartDate] = useState<Date>(new Date('2024-11-23T00:00:00')); // Initial starting date
+  const [startDate, setStartDate] = useState<Date>(new Date());
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('https://squad05-2024-2c.onrender.com/task-work')
@@ -26,6 +29,71 @@ const CalendarView = () => {
   const formatDate = (date: Date) => {
     return date.toISOString().split('T')[0];
   };
+
+  const handleSubmitTask = async (taskData: any) => {
+    try {
+      const response = await fetch('https://squad05-2024-2c.onrender.com/task-work', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          hours: Number(taskData.hours),
+          createdAt: taskData.createdAt,
+          taskId: taskData.taskId
+        }),
+      });
+      
+      if (response.ok) {
+        const updatedTasks = await fetch('https://squad05-2024-2c.onrender.com/task-work').then(res => res.json());
+        setTasks(updatedTasks);
+      }
+    } catch (error) {
+      console.error('Error adding task:', error);
+    }
+  };
+
+  const handleAddTaskWork = (date: string) => {
+    const [day, month] = date.split('/');
+    const year = new Date().getFullYear();
+    const formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    setSelectedDate(formattedDate);
+    setIsModalOpen(true);
+  };
+
+  const handleDeleteTaskWork = async (id: number) => {
+    try {
+      const response = await fetch(`https://squad05-2024-2c.onrender.com/task-work/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.ok) {
+        const updatedTasks = await fetch('https://squad05-2024-2c.onrender.com/task-work').then(res => res.json());
+        setTasks(updatedTasks);
+      }
+    } catch (error) {
+      console.error('Error deleting task:', error);
+    }
+  }
+
+  const handlePreviousWeek = () => {
+    const newStartDate = new Date(startDate);
+    newStartDate.setDate(startDate.getDate() - 7);
+    setStartDate(newStartDate);
+  };
+
+  const handleNextWeek = () => {
+    const newStartDate = new Date(startDate);
+    newStartDate.setDate(startDate.getDate() + 7);
+    setStartDate(newStartDate);
+  };
+
+  const handleClick = () => {
+    console.log("asd")
+  }
 
   const days = Array(7)
     .fill(null)
@@ -45,26 +113,6 @@ const CalendarView = () => {
         tasks: tasksForDay,
       };
     });
-
-  const handlePreviousWeek = () => {
-    const newStartDate = new Date(startDate);
-    newStartDate.setDate(startDate.getDate() - 7); // Move back 7 days
-    setStartDate(newStartDate);
-  };
-
-  const handleNextWeek = () => {
-    const newStartDate = new Date(startDate);
-    newStartDate.setDate(startDate.getDate() + 7); // Move forward 7 days
-    setStartDate(newStartDate);
-  };
-
-  const handleDeleteTaskWork = () => {
-    
-  }
-
-  const handleAddTaskWork = () => {
-    console.log("click")
-  }
 
   return (
     <div className="bg-gray w-full max-w-6xl mx-auto p-4">
@@ -126,14 +174,25 @@ const CalendarView = () => {
                       key={taskIndex}
                       className="p-2 rounded-md w-full mb-1 bg-blue-100 text-blue-800"
                     >
+                      <div className="absolute bottom-2 right-2">
+                        <button onClick={() => handleDeleteTaskWork(task.id)}> 
+
+                          <Image src="/delete.svg" alt="delete" width={20} height={20} />
+
+                        </button>
+                      </div>
                       <div className="font-medium">{task.projectName}</div>
                       <div className="text-sm">{task.taskName}</div>
                       <div className="text-xs mt-1">{task.hours} hs</div>
                     </div>
                   ))}
                 </div>
+                
                 <div className="flex justify-center">
-                  <button className="text-black font-semibold" onClick={handleAddTaskWork}>
+                  <button 
+                    className="text-black font-semibold" 
+                    onClick={() => handleAddTaskWork(day.date)}
+                  >
                     <Image src="/new_task.svg" alt="plus" width={30} height={30} />
                   </button>
                 </div>
@@ -142,6 +201,12 @@ const CalendarView = () => {
           </div>
         </div>
       </div>
+      <NewTaskPopUp
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        selectedDate={selectedDate}
+        onSubmit={handleSubmitTask}
+      />
     </div>
   );
 };
