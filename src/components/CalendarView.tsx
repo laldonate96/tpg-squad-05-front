@@ -92,13 +92,11 @@ const CalendarView = () => {
 
     try {
       const response = await fetch(`https://squad05-2024-2c.onrender.com/task-work/${taskToModify.id}`, {
-        method: 'PUT',
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          hours: newHours,
-        }),
+        body: JSON.stringify(newHours),
       });
 
       if (response.ok) {
@@ -245,7 +243,7 @@ const CalendarView = () => {
         />
       )}
     </div>
-    
+
   );
 };
 
