@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Cookies from 'js-cookie';
 
 interface Task {
   id: string;
@@ -31,6 +32,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
   selectedDate,
   onSubmit
 }) => {
+  const resourceId = Cookies.get('resourceId') || '2e6ecd47-fa18-490e-b25a-c9101a398b6d';
   const [availableTasks, setAvailableTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<{ [key: string]: Project }>({});
   const [taskData, setTaskData] = useState<TaskData>({
@@ -45,7 +47,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
       fetchTasks();
       fetchProjects();
     }
-  }, [isOpen]);
+  }, [isOpen, resourceId]);
 
   const fetchProjects = async () => {
     try {
@@ -57,7 +59,6 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
         return acc;
       }, {});
       setProjects(projectMap);
-      console.log('Projects:', projectMap);
     } catch (err) {
       console.error('Error fetching projects:', err);
     }
@@ -67,7 +68,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch('https://squad05-2024-2c.onrender.com/resource/2e6ecd47-fa18-490e-b25a-c9101a398b6d/task');
+      const response = await fetch(`https://squad05-2024-2c.onrender.com/resource/${resourceId}/task`);
       if (!response.ok) throw new Error('Failed to fetch tasks');
       const data = await response.json();
       setAvailableTasks(data);

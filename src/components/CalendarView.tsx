@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import NewTaskPopUp from './NewTaskPopUp';
 import ModifyTaskPopup from './ModifyTaskWork';
+import Cookies from 'js-cookie';
 
 interface Task {
   id: number;
@@ -12,7 +13,17 @@ interface Task {
   hours: number;
 }
 
+interface Resource {
+  id: string;
+  nombre: string;
+  apellido: string;
+  dni: string;
+  rolId: string;
+}
+
 const CalendarView = () => {
+  const [resourceId, setResourceId] = useState(Cookies.get('resourceId') || '2e6ecd47-fa18-490e-b25a-c9101a398b6d');
+  const [resources, setResources] = useState<Resource[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [startDate, setStartDate] = useState<Date>(new Date());
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -21,13 +32,19 @@ const CalendarView = () => {
   const [taskToModify, setTaskToModify] = useState<Task | null>(null);
 
   useEffect(() => {
-    fetch('https://squad05-2024-2c.onrender.com/task-work')
+    fetch('https://squad05-2024-2c.onrender.com/resources')
+      .then(res => res.json())
+      .then(data => setResources(data));
+  }, []);
+
+  useEffect(() => {
+    fetch(`https://squad05-2024-2c.onrender.com/resources/${resourceId}/task-works`)
       .then(res => res.json())
       .then(data => {
         console.log('Sample task date:', data[0]?.createdAt);
         setTasks(data);
       });
-  }, []);
+  }, [resourceId]);
 
   const formatDate = (date: Date) => {
     return date.toISOString().split('T')[0];
@@ -50,6 +67,12 @@ const CalendarView = () => {
     return colors[projectName as keyof typeof colors] || fallbackColor;
   };
 
+  const handleResourceChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const newResourceId = event.target.value;
+    setResourceId(newResourceId);
+    Cookies.set('resourceId', newResourceId);
+  };
+
   const handleSubmitTask = async (taskData: any) => {
     try {
       const response = await fetch('https://squad05-2024-2c.onrender.com/task-work', {
@@ -60,12 +83,13 @@ const CalendarView = () => {
         body: JSON.stringify({
           hours: Number(taskData.hours),
           createdAt: taskData.createdAt,
-          taskId: taskData.taskId
+          taskId: taskData.taskId,
+          resourceId: resourceId
         }),
       });
 
       if (response.ok) {
-        const updatedTasks = await fetch('https://squad05-2024-2c.onrender.com/task-work').then(res => res.json());
+        const updatedTasks = await fetch(`https://squad05-2024-2c.onrender.com/resources/${resourceId}/task-works`).then(res => res.json());
         setTasks(updatedTasks);
       }
     } catch (error) {
@@ -91,13 +115,13 @@ const CalendarView = () => {
       });
 
       if (response.ok) {
-        const updatedTasks = await fetch('https://squad05-2024-2c.onrender.com/task-work').then(res => res.json());
+        const updatedTasks = await fetch(`https://squad05-2024-2c.onrender.com/resources/${resourceId}/task-works`).then(res => res.json());
         setTasks(updatedTasks);
       }
     } catch (error) {
       console.error('Error deleting task:', error);
     }
-  }
+  };
 
   const handleModifyTask = (task: Task) => {
     setTaskToModify(task);
@@ -117,9 +141,9 @@ const CalendarView = () => {
       });
 
       if (response.ok) {
-        const updatedTasks = await fetch('https://squad05-2024-2c.onrender.com/task-work').then(res => res.json());
-        setTasks(updatedTasks); // Update the task list
-        setIsModifyPopupOpen(false); // Close the popup
+        const updatedTasks = await fetch(`https://squad05-2024-2c.onrender.com/resources/${resourceId}/task-works`).then(res => res.json());
+        setTasks(updatedTasks);
+        setIsModifyPopupOpen(false);
       }
     } catch (error) {
       console.error('Error modifying task:', error);
@@ -157,113 +181,135 @@ const CalendarView = () => {
       };
     });
 
-    return (
-      <div className="bg-gray w-full max-w-6xl mx-auto p-4">
-        <div className="bg-white rounded-lg border-2 border-gray-200 shadow-lg">
-          <div className="bg-gray-100 p-4">
-            <div className="flex justify-between items-center mb-4">
-              <div className="flex gap-2">
-                <button
-                  onClick={handlePreviousWeek}
-                  className="border-2 border-gray-600 hover:bg-gray-300 p-2 rounded-lg"
+  return (
+    <div className="bg-gray w-full max-w-6xl mx-auto p-4">
+      <div className="flex justify-end mb-4">
+        <div className="flex items-center gap-2 justify-end mb-4">
+          <span className="text-white font-semibold">Switch Profile:</span>
+            <select
+              value={resourceId}
+              onChange={handleResourceChange}
+              className="border-2 border-gray-600 rounded-lg p-2 bg-white"
+            >
+            {resources.map(resource => (
+              <option key={resource.id} value={resource.id}>
+                {resource.nombre} {resource.apellido}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-lg border-2 border-gray-200 shadow-lg">
+        <div className="bg-gray-100 p-4">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex gap-2">
+              <button
+                onClick={handlePreviousWeek}
+                className="border-2 border-gray-600 hover:bg-gray-300 p-2 rounded-lg"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="black"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="black"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="m15 18-6-6 6-6" />
-                  </svg>
-                </button>
-                <button
-                  onClick={handleNextWeek}
-                  className="border-2 border-gray-600 hover:bg-gray-300 p-2 rounded-lg"
+                  <path d="m15 18-6-6 6-6" />
+                </svg>
+              </button>
+              <button
+                onClick={handleNextWeek}
+                className="border-2 border-gray-600 hover:bg-gray-300 p-2 rounded-lg"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="black"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="black"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="m9 18 6-6-6-6" />
-                  </svg>
-                </button>
-              </div>
-              <div className="text-black font-semibold">
-                Week starting: {startDate.toLocaleDateString('es-ES')}
-              </div>
+                  <path d="m9 18 6-6-6-6" />
+                </svg>
+              </button>
             </div>
-            <div className="grid grid-cols-7 gap-2">
-              {days.map((day, index) => (
-                <div key={index} className="border-2 border-gray-600 rounded-lg p-2 min-h-64">
-                  <div className="font-medium text-black mb-2">
-                    {day.day}
-                    <span className="text-black ml-1">{day.date}</span>
-                  </div>
-                  <div className="space-y-2">
-                    {day.tasks.map((task, taskIndex) => {
-                      const { bg, text } = getProjectColor(task.projectName);
-                      return (
-                        <div
-                          key={taskIndex}
-                          className={`relative p-2 rounded-md w-full ${bg} ${text}`}
-                        >
-                          <div className="font-medium">{task.projectName}</div>
-                          <div className="text-sm">{task.taskName}</div>
-                          <div className="text-xs mt-1">{task.hours} hs</div>
-                          <div className="absolute bottom-2 right-2">
-                            <button onClick={() => handleDeleteTaskWork(task.id)}>
-                              <Image src="/delete.svg" alt="delete" width={20} height={20} />
-                            </button>
-                            <button onClick={() => handleModifyTask(task)}>
-                              <Image src="/lapicito.svg" alt="modify" width={20} height={20} />
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div className="flex justify-center mt-2">
-                    <button
-                      className="text-black font-semibold"
-                      onClick={() => handleAddTaskWork(day.date)}
-                    >
-                      <Image src="/new_task.svg" alt="plus" width={30} height={30} />
-                    </button>
-                  </div>
+            <div className="text-black text-xl font-semibold">
+              Week starting: {startDate.toLocaleDateString('es-ES')}
+            </div>
+            <div className="w-24"></div>
+          </div>
+          <div className="grid grid-cols-7 gap-2">
+            {days.map((day, index) => (
+              <div key={index} className="border-2 border-gray-600 rounded-lg p-2 min-h-64">
+                <div className="font-medium text-black mb-2">
+                  {day.day}
+                  <span className="text-black ml-1">{day.date}</span>
                 </div>
-              ))}
-            </div>
+                <div className="space-y-2">
+                  {day.tasks.map((task, taskIndex) => {
+                    const { bg, text } = getProjectColor(task.projectName);
+                    return (
+                      <div
+                        key={taskIndex}
+                        className={`relative p-2 rounded-md w-full ${bg} ${text}`}
+                      >
+                        <div className="font-medium">{task.projectName}</div>
+                        <div className="text-sm">{task.taskName}</div>
+                        <div className="text-xs mt-1">{task.hours} hs</div>
+                        <div className="absolute bottom-2 w-full flex justify-between px-2">
+                          <div className="flex-1"></div>
+                          <button
+                            onClick={() => handleModifyTask(task)}
+                            className="mx-auto"
+                          >
+                            <Image src="/lapicito.svg" alt="modify" width={20} height={20} />
+                          </button>
+                          <button onClick={() => handleDeleteTaskWork(task.id)}>
+                            <Image src="/delete.svg" alt="delete" width={20} height={20} />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="flex justify-center mt-2">
+                  <button
+                    className="text-black font-semibold"
+                    onClick={() => handleAddTaskWork(day.date)}
+                  >
+                    <Image src="/new_task.svg" alt="plus" width={30} height={30} />
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-        <NewTaskPopUp
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          selectedDate={selectedDate}
-          onSubmit={handleSubmitTask}
-        />
-        {taskToModify && (
-          <ModifyTaskPopup
-            isOpen={isModifyPopupOpen}
-            onClose={() => setIsModifyPopupOpen(false)}
-            taskName={taskToModify.taskName}
-            initialHours={taskToModify.hours}
-            onSubmit={handleModifySubmit}
-          />
-        )}
       </div>
-    );
-  };
+      <NewTaskPopUp
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        selectedDate={selectedDate}
+        onSubmit={handleSubmitTask}
+      />
+      {taskToModify && (
+        <ModifyTaskPopup
+          isOpen={isModifyPopupOpen}
+          onClose={() => setIsModifyPopupOpen(false)}
+          taskName={taskToModify.taskName}
+          initialHours={taskToModify.hours}
+          onSubmit={handleModifySubmit}
+        />
+      )}
+    </div>
+  );
+};
 
 export default CalendarView;
