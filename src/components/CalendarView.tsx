@@ -33,6 +33,23 @@ const CalendarView = () => {
     return date.toISOString().split('T')[0];
   };
 
+  const getProjectColor = (projectName: string) => {
+    const colors = {
+      default: { bg: 'bg-blue-100', text: 'text-blue-800' },
+      'Project A': { bg: 'bg-green-100', text: 'text-green-800' },
+      'Project B': { bg: 'bg-purple-100', text: 'text-purple-800' },
+      'Project C': { bg: 'bg-yellow-100', text: 'text-yellow-800' },
+      'Project D': { bg: 'bg-pink-100', text: 'text-pink-800' },
+      'Project E': { bg: 'bg-orange-100', text: 'text-orange-800' },
+    };
+
+    const projectHash = projectName.split('').reduce((acc, char) => char.charCodeAt(0) + acc, 0);
+    const colorKeys = Object.keys(colors).filter(key => key !== 'default');
+    const fallbackColor = colors[colorKeys[projectHash % colorKeys.length] as keyof typeof colors];
+
+    return colors[projectName as keyof typeof colors] || fallbackColor;
+  };
+
   const handleSubmitTask = async (taskData: any) => {
     try {
       const response = await fetch('https://squad05-2024-2c.onrender.com/task-work', {
@@ -140,111 +157,113 @@ const CalendarView = () => {
       };
     });
 
-  return (
-    <div className="bg-gray w-full max-w-6xl mx-auto p-4">
-      <div className="bg-white rounded-lg border-2 border-gray-200 shadow-lg">
-        <div className="bg-gray-100 p-4">
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex gap-2">
-              <button
-                onClick={handlePreviousWeek}
-                className="border-2 border-gray-600 hover:bg-gray-300 p-2 rounded-lg"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="black"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+    return (
+      <div className="bg-gray w-full max-w-6xl mx-auto p-4">
+        <div className="bg-white rounded-lg border-2 border-gray-200 shadow-lg">
+          <div className="bg-gray-100 p-4">
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex gap-2">
+                <button
+                  onClick={handlePreviousWeek}
+                  className="border-2 border-gray-600 hover:bg-gray-300 p-2 rounded-lg"
                 >
-                  <path d="m15 18-6-6 6-6" />
-                </svg>
-              </button>
-              <button
-                onClick={handleNextWeek}
-                className="border-2 border-gray-600 hover:bg-gray-300 p-2 rounded-lg"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="black"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="m9 18 6-6-6-6" />
-                </svg>
-              </button>
-            </div>
-            <div className="text-black font-semibold">
-              Week starting: {startDate.toLocaleDateString('es-ES')}
-            </div>
-          </div>
-          <div className="grid grid-cols-7 gap-2">
-            {days.map((day, index) => (
-              <div key={index} className="border-2 border-gray-600 rounded-lg p-2 min-h-64">
-                <div className="font-medium text-black mb-2">
-                  {day.day}
-                  <span className="text-black ml-1">{day.date}</span>
-                </div>
-                <div className="space-y-2">
-                  {day.tasks.map((task, taskIndex) => (
-                    <div
-                      key={taskIndex}
-                      className="relative p-2 rounded-md w-full bg-blue-100 text-blue-800"
-                    >
-                      <div className="font-medium">{task.projectName}</div>
-                      <div className="text-sm">{task.taskName}</div>
-                      <div className="text-xs mt-1">{task.hours} hs</div>
-                      <div className="absolute bottom-2 right-2">
-                        <button onClick={() => handleDeleteTaskWork(task.id)}>
-                          <Image src="/delete.svg" alt="delete" width={20} height={20} />
-                        </button>
-                        <button onClick={() => handleModifyTask(task)}>
-                          <Image src="/lapicito.svg" alt="modify" width={20} height={20} />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex justify-center mt-2">
-                  <button
-                    className="text-black font-semibold"
-                    onClick={() => handleAddTaskWork(day.date)}
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="black"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   >
-                    <Image src="/new_task.svg" alt="plus" width={30} height={30} />
-                  </button>
-                </div>
+                    <path d="m15 18-6-6 6-6" />
+                  </svg>
+                </button>
+                <button
+                  onClick={handleNextWeek}
+                  className="border-2 border-gray-600 hover:bg-gray-300 p-2 rounded-lg"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="black"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="m9 18 6-6-6-6" />
+                  </svg>
+                </button>
               </div>
-            ))}
+              <div className="text-black font-semibold">
+                Week starting: {startDate.toLocaleDateString('es-ES')}
+              </div>
+            </div>
+            <div className="grid grid-cols-7 gap-2">
+              {days.map((day, index) => (
+                <div key={index} className="border-2 border-gray-600 rounded-lg p-2 min-h-64">
+                  <div className="font-medium text-black mb-2">
+                    {day.day}
+                    <span className="text-black ml-1">{day.date}</span>
+                  </div>
+                  <div className="space-y-2">
+                    {day.tasks.map((task, taskIndex) => {
+                      const { bg, text } = getProjectColor(task.projectName);
+                      return (
+                        <div
+                          key={taskIndex}
+                          className={`relative p-2 rounded-md w-full ${bg} ${text}`}
+                        >
+                          <div className="font-medium">{task.projectName}</div>
+                          <div className="text-sm">{task.taskName}</div>
+                          <div className="text-xs mt-1">{task.hours} hs</div>
+                          <div className="absolute bottom-2 right-2">
+                            <button onClick={() => handleDeleteTaskWork(task.id)}>
+                              <Image src="/delete.svg" alt="delete" width={20} height={20} />
+                            </button>
+                            <button onClick={() => handleModifyTask(task)}>
+                              <Image src="/lapicito.svg" alt="modify" width={20} height={20} />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="flex justify-center mt-2">
+                    <button
+                      className="text-black font-semibold"
+                      onClick={() => handleAddTaskWork(day.date)}
+                    >
+                      <Image src="/new_task.svg" alt="plus" width={30} height={30} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
-      <NewTaskPopUp
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        selectedDate={selectedDate}
-        onSubmit={handleSubmitTask}
-      />
-      {taskToModify && (
-        <ModifyTaskPopup
-          isOpen={isModifyPopupOpen}
-          onClose={() => setIsModifyPopupOpen(false)}
-          taskName={taskToModify.taskName}
-          initialHours={taskToModify.hours}
-          onSubmit={handleModifySubmit}
+        <NewTaskPopUp
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          selectedDate={selectedDate}
+          onSubmit={handleSubmitTask}
         />
-      )}
-    </div>
-
-  );
-};
+        {taskToModify && (
+          <ModifyTaskPopup
+            isOpen={isModifyPopupOpen}
+            onClose={() => setIsModifyPopupOpen(false)}
+            taskName={taskToModify.taskName}
+            initialHours={taskToModify.hours}
+            onSubmit={handleModifySubmit}
+          />
+        )}
+      </div>
+    );
+  };
 
 export default CalendarView;
