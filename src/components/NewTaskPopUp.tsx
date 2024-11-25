@@ -139,7 +139,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
               type="number"
               name="hours"
               min="0"
-              step="0.5"
+              step="1"
               value={taskData.hours}
               onChange={(e) => setTaskData(prev => ({ ...prev, hours: e.target.value }))}
               className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
