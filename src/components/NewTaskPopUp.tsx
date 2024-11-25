@@ -3,6 +3,12 @@ import React, { useState, useEffect } from 'react';
 interface Task {
   id: string;
   nombre: string;
+  proyectoId: string;
+}
+
+interface Project {
+  id: string;
+  nombre: string;
 }
 
 interface TaskData {
@@ -26,6 +32,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
   onSubmit
 }) => {
   const [availableTasks, setAvailableTasks] = useState<Task[]>([]);
+  const [projects, setProjects] = useState<{ [key: string]: Project }>({});
   const [taskData, setTaskData] = useState<TaskData>({
     taskId: '',
     hours: '',
@@ -36,8 +43,25 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       fetchTasks();
+      fetchProjects();
     }
   }, [isOpen]);
+
+  const fetchProjects = async () => {
+    try {
+      const response = await fetch('https://squad05-2024-2c.onrender.com/projects');
+      if (!response.ok) throw new Error('Failed to fetch projects');
+      const projectList = await response.json();
+      const projectMap = projectList.reduce((acc: { [key: string]: Project }, project: Project) => {
+        acc[project.id] = project;
+        return acc;
+      }, {});
+      setProjects(projectMap);
+      console.log('Projects:', projectMap);
+    } catch (err) {
+      console.error('Error fetching projects:', err);
+    }
+  };
 
   const fetchTasks = async () => {
     setIsLoading(true);
@@ -120,7 +144,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
                 <option value="">Select a task</option>
                 {availableTasks.map((task) => (
                   <option key={task.id} value={task.id}>
-                    {task.nombre}
+                    {task.nombre} - Proyecto: {projects[task.proyectoId]?.nombre || task.proyectoId}
                   </option>
                 ))}
               </select>
