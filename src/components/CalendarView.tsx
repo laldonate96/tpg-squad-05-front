@@ -43,7 +43,7 @@ const CalendarView = () => {
           taskId: taskData.taskId
         }),
       });
-      
+
       if (response.ok) {
         const updatedTasks = await fetch('https://squad05-2024-2c.onrender.com/task-work').then(res => res.json());
         setTasks(updatedTasks);
@@ -69,7 +69,7 @@ const CalendarView = () => {
           'Content-Type': 'application/json',
         },
       });
-      
+
       if (response.ok) {
         const updatedTasks = await fetch('https://squad05-2024-2c.onrender.com/task-work').then(res => res.json());
         setTasks(updatedTasks);
@@ -90,10 +90,6 @@ const CalendarView = () => {
     newStartDate.setDate(startDate.getDate() + 7);
     setStartDate(newStartDate);
   };
-
-  const handleClick = () => {
-    console.log("asd")
-  }
 
   const days = Array(7)
     .fill(null)
@@ -168,29 +164,26 @@ const CalendarView = () => {
                   {day.day}
                   <span className="text-black ml-1">{day.date}</span>
                 </div>
-                <div className="relative">
+                <div className="space-y-2">
                   {day.tasks.map((task, taskIndex) => (
                     <div
                       key={taskIndex}
-                      className="p-2 rounded-md w-full mb-1 bg-blue-100 text-blue-800"
+                      className="relative p-2 rounded-md w-full bg-blue-100 text-blue-800"
                     >
-                      <div className="absolute bottom-2 right-2">
-                        <button onClick={() => handleDeleteTaskWork(task.id)}> 
-
-                          <Image src="/delete.svg" alt="delete" width={20} height={20} />
-
-                        </button>
-                      </div>
                       <div className="font-medium">{task.projectName}</div>
                       <div className="text-sm">{task.taskName}</div>
                       <div className="text-xs mt-1">{task.hours} hs</div>
+                      <div className="absolute bottom-2 right-2">
+                        <button onClick={() => handleDeleteTaskWork(task.id)}>
+                          <Image src="/delete.svg" alt="delete" width={20} height={20} />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
-                
-                <div className="flex justify-center">
-                  <button 
-                    className="text-black font-semibold" 
+                <div className="flex justify-center mt-2">
+                  <button
+                    className="text-black font-semibold"
                     onClick={() => handleAddTaskWork(day.date)}
                   >
                     <Image src="/new_task.svg" alt="plus" width={30} height={30} />
