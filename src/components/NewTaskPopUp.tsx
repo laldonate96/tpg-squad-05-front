@@ -2,10 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 interface Task {
   id: string;
-  name: string;
-  project: {
-    name: string;
-  };
+  nombre: string;
 }
 
 interface TaskData {
@@ -22,11 +19,11 @@ interface AddTaskModalProps {
   onSubmit: (data: TaskData) => void;
 }
 
-const AddTaskModal: React.FC<AddTaskModalProps> = ({ 
-  isOpen, 
-  onClose, 
-  selectedDate, 
-  onSubmit 
+const AddTaskModal: React.FC<AddTaskModalProps> = ({
+  isOpen,
+  onClose,
+  selectedDate,
+  onSubmit
 }) => {
   const [availableTasks, setAvailableTasks] = useState<Task[]>([]);
   const [taskData, setTaskData] = useState<TaskData>({
@@ -63,19 +60,19 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const selectedTask = availableTasks.find(task => task.id === taskData.taskId);
-    
+
     if (!selectedTask) {
       setError('Please select a task');
       return;
     }
-  
+
     const submissionData: TaskData = {
-      taskName: selectedTask.name,
+      taskName: selectedTask.nombre,
       hours: taskData.hours,
       createdAt: selectedDate || undefined,
       taskId: taskData.taskId
     };
-  
+
     onSubmit(submissionData);
     setTaskData({ taskId: '', hours: '' });
     onClose();
@@ -86,7 +83,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
       <div className="bg-white rounded-lg p-6 w-full max-w-md">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-gray-700">Add Task Hours</h2>
-          <button 
+          <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700"
             type="button"
@@ -94,7 +91,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
             ✕
           </button>
         </div>
-        
+
         {error && (
           <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">
             {error}
@@ -103,8 +100,8 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label 
-              htmlFor="taskId" 
+            <label
+              htmlFor="taskId"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
               Select Task
@@ -123,7 +120,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
                 <option value="">Select a task</option>
                 {availableTasks.map((task) => (
                   <option key={task.id} value={task.id}>
-                    {task.name}
+                    {task.nombre}
                   </option>
                 ))}
               </select>
@@ -131,8 +128,8 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
           </div>
 
           <div>
-            <label 
-              htmlFor="hours" 
+            <label
+              htmlFor="hours"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
               Hours
