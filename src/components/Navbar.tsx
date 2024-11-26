@@ -8,7 +8,7 @@ export default function Navbar() {
  const isReportsPage = pathname === '/reports';
 
  return (
-   <nav className="fixed top-4 right-4 z-10">
+   <nav className="fixed top-4 right-4 z-10 space-y-2">
      <div className="bg-gray-200 shadow-lg rounded-lg">
        <Link
          href="/finance-module"
@@ -17,6 +17,8 @@ export default function Navbar() {
          <span>Ir a modulo de finanzas</span>
          <ArrowRightCircle className="w-5 h-5" />
        </Link>
+     </div>
+     <div className="bg-gray-200 shadow-lg rounded-lg">
        <Link
          href={isReportsPage ? '/' : '/reports'}
          className="flex items-center gap-2 px-4 py-2 text-black hover:text-blue-600 transition-colors duration-200"
