@@ -239,7 +239,7 @@ const CalendarView = () => {
               </button>
             </div>
             <div className="text-black text-xl font-semibold">
-              Week starting: {startDate.toLocaleDateString('es-ES')}
+              Comienzo de Semana: {startDate.toLocaleDateString('es-ES')}
             </div>
             <div className="w-24"></div>
           </div>

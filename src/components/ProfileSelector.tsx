@@ -1,6 +1,5 @@
 'use client';
 import React from 'react';
-import Image from 'next/image';
 import { ChevronLeft, ChevronRight, User } from 'lucide-react';
 
 interface ProfileSelectorProps {
@@ -25,11 +24,10 @@ const ProfileSelector = ({ resources, selectedId, onChange }: ProfileSelectorPro
   const currentResource = resources[currentIndex];
 
   return (
-    <div className="flex items-center gap-4 justify-end mb-4">
-      <span className="text-white font-semibold">Switch Profile:</span>
+    <div className="absolute top-4 left-4 flex items-center gap-4 justify-start mb-4">
       <div className="flex items-center bg-white rounded-lg p-2 gap-4">
         <button onClick={handlePrevious} className="hover:bg-gray-100 p-1 rounded">
-          <ChevronLeft size={20} color='black' />
+          <ChevronLeft size={20} color="black" />
         </button>
 
         <div className="flex items-center gap-2 min-w-[200px] justify-center">
@@ -40,7 +38,7 @@ const ProfileSelector = ({ resources, selectedId, onChange }: ProfileSelectorPro
         </div>
 
         <button onClick={handleNext} className="hover:bg-gray-100 p-1 rounded">
-          <ChevronRight size={20} color='black' />
+          <ChevronRight size={20} color="black" />
         </button>
       </div>
     </div>
