@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import ReportModal from './ReportModal';
 
 interface Project {
   id: string;
@@ -13,12 +14,41 @@ interface Resource {
   apellido: string;
 }
 
+interface ReportData {
+  totalResources: number;
+  year: number;
+  totalHours: number;
+  resources: {
+    resourceId: string;
+    totalHours: number;
+    apellido: string;
+    monthlyHours: {
+      january: number;
+      february: number;
+      march: number;
+      april: number;
+      may: number;
+      june: number;
+      july: number;
+      august: number;
+      september: number;
+      october: number;
+      november: number;
+      december: number;
+    };
+    nombre: string;
+    dni: string;
+  }[];
+  projectId: string;
+}
+
 export default function ReportsView() {
   const [selectedProject, setSelectedProject] = useState<string>('');
   const [selectedResources, setSelectedResources] = useState<Resource[]>([]);
   const [selectedYear, setSelectedYear] = useState<string>('');
   const [projects, setProjects] = useState<Project[]>([]);
   const [totalHours, setTotalHours] = useState<number | null>(null);
+  const [reportData, setReportData] = useState<ReportData | null>(null);
 
   const currentYear = new Date().getFullYear();
   const years = Array.from(
@@ -69,11 +99,23 @@ export default function ReportsView() {
     }
   }, [selectedProject]);
 
-  const handleGenerateReport = () => {
-    console.log('Generating report for project:', selectedProject, 'year:', selectedYear);
+  const handleGenerateReport = async () => {
+    try {
+      const response = await fetch(`https://squad05-2024-2c.onrender.com/projects/${selectedProject}/resources/hours/${selectedYear}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      const data: ReportData = await response.json();
+      setReportData(data);
+    } catch (error) {
+      console.error('Error generating report:', error);
+    }
   };
 
   return (
+    <>
     <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-200">
       <div className="grid grid-cols-5 gap-6">
         <div>
@@ -102,11 +144,19 @@ export default function ReportsView() {
 
         <div>
           <label className="block text-sm text-black font-medium mb-2">Recursos</label>
-          <select className="w-full border rounded-md p-2">
-            {selectedResources.map(resource => (
-              <option key={resource.id} value={resource.id}>{resource.nombre} {resource.apellido}</option>
-            ))}
-          </select>
+          {selectedResources.length > 0 ? (
+            <select className="w-full border rounded-md p-2">
+              {selectedResources.map(resource => (
+                <option key={resource.id} value={resource.id}>
+                  {resource.nombre} {resource.apellido}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <div className="h-10 px-3 text-black py-2 border rounded-md flex items-center">
+              -
+            </div>
+          )}
         </div>
 
         <div>
@@ -133,5 +183,13 @@ export default function ReportsView() {
         </div>
       </div>
     </div>
+
+    {reportData && (
+      <ReportModal 
+        data={reportData} 
+        onClose={() => setReportData(null)} 
+      />
+    )}
+    </>
   );
 }
