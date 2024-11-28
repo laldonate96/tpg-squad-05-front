@@ -1,7 +1,4 @@
-// src/app/interfaces/types.ts
-
 declare module '@/app/interfaces/types' {
-  // Basic entity interfaces
   export interface Resource {
     id: string;
     nombre: string;
@@ -21,7 +18,6 @@ declare module '@/app/interfaces/types' {
     proyectoId: string;
   }
 
-  // Task-related interfaces
   export interface TaskWork {
     id: number;
     taskName: string;
@@ -37,7 +33,6 @@ declare module '@/app/interfaces/types' {
     taskName?: string;
   }
 
-  // Modal Props interfaces
   export interface AddTaskModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -45,7 +40,6 @@ declare module '@/app/interfaces/types' {
     onSubmit: (data: TaskData) => void;
   }
 
-  // Report-related interfaces
   export interface MonthlyHours {
     january: number;
     february: number;
@@ -84,7 +78,13 @@ declare module '@/app/interfaces/types' {
     rolePrices: RolePrice;
     onClose: () => void;
   }
+
+  export interface TaskCardProps {
+    task: TaskWork;
+    projectColors: { bg: string; text: string };
+    onModify: (task: TaskWork) => void;
+    onDelete: (id: number) => void;
+  }
 }
 
-// Export something to make this a module
 export {};

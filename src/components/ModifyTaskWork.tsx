@@ -20,8 +20,8 @@ const ModifyTaskPopup: React.FC<ModifyTaskPopupProps> = ({
   const [newHours, setNewHours] = useState(initialHours);
 
   const handleSubmit = () => {
-    onSubmit(newHours); // Pass new hours to the parent
-    onClose(); // Close the popup
+    onSubmit(newHours);
+    onClose();
   };
 
   if (!isOpen) return null;

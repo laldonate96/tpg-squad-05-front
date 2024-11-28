@@ -5,6 +5,7 @@ import NewTaskPopUp from './NewTaskPopUp';
 import ModifyTaskPopup from './ModifyTaskWork';
 import Cookies from 'js-cookie';
 import ProfileSelector from './ProfileSelector';
+import TaskCard from './TaskCard';
 import { Resource, TaskData, TaskWork } from '@/app/interfaces/types';
 
 const CalendarView = () => {
@@ -22,19 +23,18 @@ const CalendarView = () => {
   const [isModifyPopupOpen, setIsModifyPopupOpen] = useState(false);
   const [taskToModify, setTaskToModify] = useState<TaskWork | null>(null);
 
+  const SQUAD_5_API = 'https://squad05-2024-2c.onrender.com';
+
   useEffect(() => {
-    fetch('https://squad05-2024-2c.onrender.com/resources')
+    fetch(`${SQUAD_5_API}/resources`)
       .then(res => res.json())
       .then(data => setResources(data));
   }, []);
 
   useEffect(() => {
-    fetch(`https://squad05-2024-2c.onrender.com/resources/${resourceId}/task-works`)
+    fetch(`${SQUAD_5_API}/resources/${resourceId}/task-works`)
       .then(res => res.json())
-      .then(data => {
-        console.log('Sample task date:', data[0]?.createdAt);
-        setTasks(data);
-      });
+      .then(data => setTasks(data));
   }, [resourceId]);
 
   const formatDate = (date: Date) => {
@@ -60,7 +60,7 @@ const CalendarView = () => {
 
   const handleSubmitTask = async (taskData: TaskData) => {
     try {
-      const response = await fetch('https://squad05-2024-2c.onrender.com/task-work', {
+      const response = await fetch(`${SQUAD_5_API}/task-work`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -74,7 +74,7 @@ const CalendarView = () => {
       });
 
       if (response.ok) {
-        const updatedTasks = await fetch(`https://squad05-2024-2c.onrender.com/resources/${resourceId}/task-works`).then(res => res.json());
+        const updatedTasks = await fetch(`${SQUAD_5_API}/resources/${resourceId}/task-works`).then(res => res.json());
         setTasks(updatedTasks);
       }
     } catch (error) {
@@ -92,7 +92,7 @@ const CalendarView = () => {
 
   const handleDeleteTaskWork = async (id: number) => {
     try {
-      const response = await fetch(`https://squad05-2024-2c.onrender.com/task-work/${id}`, {
+      const response = await fetch(`${SQUAD_5_API}/task-work/${id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -100,7 +100,7 @@ const CalendarView = () => {
       });
 
       if (response.ok) {
-        const updatedTasks = await fetch(`https://squad05-2024-2c.onrender.com/resources/${resourceId}/task-works`).then(res => res.json());
+        const updatedTasks = await fetch(`${SQUAD_5_API}/resources/${resourceId}/task-works`).then(res => res.json());
         setTasks(updatedTasks);
       }
     } catch (error) {
@@ -117,7 +117,7 @@ const CalendarView = () => {
     if (!taskToModify) return;
 
     try {
-      const response = await fetch(`https://squad05-2024-2c.onrender.com/task-work/${taskToModify.id}`, {
+      const response = await fetch(`${SQUAD_5_API}/task-work/${taskToModify.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -126,7 +126,7 @@ const CalendarView = () => {
       });
 
       if (response.ok) {
-        const updatedTasks = await fetch(`https://squad05-2024-2c.onrender.com/resources/${resourceId}/task-works`).then(res => res.json());
+        const updatedTasks = await fetch(`${SQUAD_5_API}/resources/${resourceId}/task-works`).then(res => res.json());
         setTasks(updatedTasks);
         setIsModifyPopupOpen(false);
       }
@@ -166,6 +166,27 @@ const CalendarView = () => {
       };
     });
 
+  const NavigationButton = ({ onClick, direction }: { onClick: () => void; direction: 'left' | 'right' }) => (
+    <button
+      onClick={onClick}
+      className="border-2 border-gray-600 hover:bg-gray-300 p-2 rounded-lg"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="black"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d={direction === 'left' ? "m15 18-6-6 6-6" : "m9 18 6-6-6-6"} />
+      </svg>
+    </button>
+  );
+
   return (
     <div className="bg-gray w-full max-w-6xl mx-auto p-4">
       <div className="flex justify-end mb-4">
@@ -185,48 +206,15 @@ const CalendarView = () => {
         <div className="bg-gray-100 p-4">
           <div className="flex justify-between items-center mb-4">
             <div className="flex gap-2">
-              <button
-                onClick={handlePreviousWeek}
-                className="border-2 border-gray-600 hover:bg-gray-300 p-2 rounded-lg"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="black"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="m15 18-6-6 6-6" />
-                </svg>
-              </button>
-              <button
-                onClick={handleNextWeek}
-                className="border-2 border-gray-600 hover:bg-gray-300 p-2 rounded-lg"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="black"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="m9 18 6-6-6-6" />
-                </svg>
-              </button>
+              <NavigationButton onClick={handlePreviousWeek} direction="left" />
+              <NavigationButton onClick={handleNextWeek} direction="right" />
             </div>
             <div className="text-black text-xl font-semibold">
               Comienzo de Semana: {startDate.toLocaleDateString('es-ES')}
             </div>
             <div className="w-24"></div>
           </div>
+
           <div className="grid grid-cols-7 gap-2">
             {days.map((day, index) => (
               <div key={index} className="border-2 border-gray-600 rounded-lg p-2 min-h-64">
@@ -234,33 +222,19 @@ const CalendarView = () => {
                   {day.day}
                   <span className="text-black ml-1">{day.date}</span>
                 </div>
+
                 <div className="space-y-2">
-                  {day.tasks.map((task, taskIndex) => {
-                    const { bg, text } = getProjectColor(task.projectName);
-                    return (
-                      <div
-                        key={taskIndex}
-                        className={`relative p-2 rounded-md w-full ${bg} ${text}`}
-                      >
-                        <div className="font-medium">{task.projectName}</div>
-                        <div className="text-sm">{task.taskName}</div>
-                        <div className="text-xs mt-1">{task.hours} hs</div>
-                        <div className="absolute bottom-2 w-full flex justify-between px-2">
-                          <div className="flex-1"></div>
-                          <button
-                            onClick={() => handleModifyTask(task)}
-                            className="mx-auto"
-                          >
-                            <Image src="/lapicito.svg" alt="modify" width={20} height={20} />
-                          </button>
-                          <button onClick={() => handleDeleteTaskWork(task.id)}>
-                            <Image src="/delete.svg" alt="delete" width={20} height={20} />
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
+                  {day.tasks.map((task, taskIndex) => (
+                    <TaskCard
+                      key={taskIndex}
+                      task={task}
+                      projectColors={getProjectColor(task.projectName)}
+                      onModify={handleModifyTask}
+                      onDelete={handleDeleteTaskWork}
+                    />
+                  ))}
                 </div>
+
                 <div className="flex justify-center mt-2">
                   <button
                     className="text-black font-semibold"
@@ -274,6 +248,7 @@ const CalendarView = () => {
           </div>
         </div>
       </div>
+
       <NewTaskPopUp
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
