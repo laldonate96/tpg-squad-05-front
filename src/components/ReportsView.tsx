@@ -100,7 +100,7 @@ export default function ReportsView() {
         setRolePrices(prices);
       } catch (error) {
         console.error('Error fetching role prices:', error);
-        setPriceError('Unable to fetch role prices. Using default values.');
+        setPriceError('Este proyecto no tiene recursos asignados.');
 
         const defaultPrices: RolePrice = {};
         selectedResources.forEach(resource => {
