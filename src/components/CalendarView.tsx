@@ -213,7 +213,7 @@ const CalendarView = () => {
   );
 
   return (
-    <div className="bg-gray w-full max-w-6xl mx-auto p-4">
+    <div className="bg-gray w-full max-w-[90vw] mx-auto p-4">
       <div className="flex justify-end mb-4">
         <div className="flex items-center gap-2 justify-end mb-4">
           <ProfileSelector
@@ -228,27 +228,27 @@ const CalendarView = () => {
       </div>
 
       <div className="bg-white rounded-lg border-2 border-gray-200 shadow-lg">
-        <div className="bg-gray-100 p-4">
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex gap-2">
+        <div className="bg-gray-100 p-6">
+          <div className="flex justify-between items-center mb-6">
+            <div className="flex gap-4">
               <NavigationButton onClick={handlePreviousWeek} direction="left" />
               <NavigationButton onClick={handleNextWeek} direction="right" />
             </div>
             <div className="text-black text-xl font-semibold">
               Comienzo de Semana: {startDate.toLocaleDateString('es-ES')}
             </div>
-            <div className="w-24"></div>
+            <div className="w-32"></div>
           </div>
 
-          <div className="grid grid-cols-7 gap-2">
+          <div className="grid grid-cols-7 gap-4">
             {days.map((day, index) => (
-              <div key={index} className="border-2 border-gray-600 rounded-lg p-2 min-h-64">
-                <div className="font-medium text-black mb-2">
+              <div key={index} className="border-2 border-gray-600 rounded-lg p-4 min-h-[300px]">
+                <div className="font-medium text-black mb-3">
                   {day.day}
-                  <span className="text-black ml-1">{day.date}</span>
+                  <span className="text-black ml-2">{day.date}</span>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {day.tasks.map((task, taskIndex) => (
                     <TaskCard
                       key={taskIndex}
@@ -260,9 +260,9 @@ const CalendarView = () => {
                   ))}
                 </div>
 
-                <div className="flex justify-center mt-2">
+                <div className="flex justify-center mt-4">
                   <button
-                    className="text-black font-semibold"
+                    className="text-black font-semibold hover:bg-gray-100 p-2 rounded-full"
                     onClick={() => handleAddTaskWork(day.date)}
                   >
                     <Image src="/new_task.svg" alt="plus" width={30} height={30} />
