@@ -1,6 +1,5 @@
 'use client';
 import { useEffect, useState } from 'react';
-import ReportModal from './ReportTable';
 import { Project, ReportData, Resource, RolePrice } from '../app/interfaces/types';
 import ReportTable from './ReportTable';
 
