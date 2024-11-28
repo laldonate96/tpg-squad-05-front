@@ -7,6 +7,7 @@ import Cookies from 'js-cookie';
 import ProfileSelector from './ProfileSelector';
 import TaskCard from './TaskCard';
 import { Resource, TaskData, TaskWork } from '@/app/interfaces/types';
+import DeleteConfirmation from './DeleteConfirmation';
 
 const CalendarView = () => {
   const [resourceId, setResourceId] = useState(Cookies.get('resourceId') || '2e6ecd47-fa18-490e-b25a-c9101a398b6d');
@@ -22,6 +23,15 @@ const CalendarView = () => {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [isModifyPopupOpen, setIsModifyPopupOpen] = useState(false);
   const [taskToModify, setTaskToModify] = useState<TaskWork | null>(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    isOpen: boolean;
+    taskId: number | null;
+    taskName: string;
+  }>({
+    isOpen: false,
+    taskId: null,
+    taskName: ''
+  });
 
   const SQUAD_5_API = 'https://squad05-2024-2c.onrender.com';
 
@@ -90,9 +100,22 @@ const CalendarView = () => {
     setIsModalOpen(true);
   };
 
-  const handleDeleteTaskWork = async (id: number) => {
+  const handleDeleteTaskWork = (id: number) => {
+    const taskToDelete = tasks.find(task => task.id === id);
+    if (!taskToDelete) return;
+
+    setDeleteConfirmation({
+      isOpen: true,
+      taskId: id,
+      taskName: taskToDelete.taskName
+    });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirmation.taskId) return;
+
     try {
-      const response = await fetch(`${SQUAD_5_API}/task-work/${id}`, {
+      const response = await fetch(`${SQUAD_5_API}/task-work/${deleteConfirmation.taskId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -105,6 +128,8 @@ const CalendarView = () => {
       }
     } catch (error) {
       console.error('Error deleting task:', error);
+    } finally {
+      setDeleteConfirmation({ isOpen: false, taskId: null, taskName: '' });
     }
   };
 
@@ -264,6 +289,12 @@ const CalendarView = () => {
           onSubmit={handleModifySubmit}
         />
       )}
+      <DeleteConfirmation
+  isOpen={deleteConfirmation.isOpen}
+  onClose={() => setDeleteConfirmation({ isOpen: false, taskId: null, taskName: '' })}
+  onConfirm={confirmDelete}
+  taskName={deleteConfirmation.taskName}
+/>
     </div>
   );
 };
