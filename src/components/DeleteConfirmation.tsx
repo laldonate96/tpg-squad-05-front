@@ -1,11 +1,5 @@
+import { DeleteConfirmationProps } from '@/app/interfaces/types';
 import React from 'react';
-
-interface DeleteConfirmationProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  taskName: string;
-}
 
 const DeleteConfirmation = ({ isOpen, onClose, onConfirm, taskName }: DeleteConfirmationProps) => {
   if (!isOpen) return null;

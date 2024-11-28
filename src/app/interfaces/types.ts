@@ -85,6 +85,13 @@ declare module '@/app/interfaces/types' {
     onModify: (task: TaskWork) => void;
     onDelete: (id: number) => void;
   }
+
+  export interface DeleteConfirmationProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onConfirm: () => void;
+    taskName: string;
+  }
 }
 
 export {};
