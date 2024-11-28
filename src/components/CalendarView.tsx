@@ -5,6 +5,7 @@ import NewTaskPopUp from './NewTaskPopUp';
 import ModifyTaskPopup from './ModifyTaskWork';
 import Cookies from 'js-cookie';
 import ProfileSelector from './ProfileSelector';
+import { Resource, TaskData, TaskWork } from '@/app/interfaces/types';
 
 const CalendarView = () => {
   const [resourceId, setResourceId] = useState(Cookies.get('resourceId') || '2e6ecd47-fa18-490e-b25a-c9101a398b6d');
@@ -52,13 +53,7 @@ const CalendarView = () => {
     return colors[projectName as keyof typeof colors] || fallbackColor;
   };
 
-  const handleResourceChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const newResourceId = event.target.value;
-    setResourceId(newResourceId);
-    Cookies.set('resourceId', newResourceId);
-  };
-
-  const handleSubmitTask = async (taskData: any) => {
+  const handleSubmitTask = async (taskData: TaskData) => {
     try {
       const response = await fetch('https://squad05-2024-2c.onrender.com/task-work', {
         method: 'POST',

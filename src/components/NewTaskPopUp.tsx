@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Cookies from 'js-cookie';
+import { AddTaskModalProps, Project, Task, TaskData } from '@/app/interfaces/types';
 
 const AddTaskModal: React.FC<AddTaskModalProps> = ({
   isOpen,

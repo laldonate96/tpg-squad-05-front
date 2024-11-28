@@ -1,7 +1,8 @@
 'use client';
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import ReportModal from './ReportModal';
+import { Project, ReportData, Resource, RolePrice } from '../app/interfaces/types';
+
 
 export default function ReportsView() {
   const [selectedProject, setSelectedProject] = useState<string>('');
@@ -90,7 +91,7 @@ export default function ReportsView() {
               const data = await response.json();
               prices[resource.rolId] = data.cuesta_hora;
             } catch (error) {
-              console.warn(`Falling back to default price for role ${resource.rolId}`);
+              console.log(`Error fetching role price for role ${resource.rolId}:`, error);
               prices[resource.rolId] = getDefaultRolePrice(resource.rolId);
             }
           })

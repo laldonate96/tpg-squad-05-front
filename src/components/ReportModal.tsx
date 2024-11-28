@@ -1,5 +1,6 @@
 import React from 'react';
 import { X } from 'lucide-react';
+import { ReportModalProps, MonthlyHours } from '../app/interfaces/types';
 
 const ReportModal: React.FC<ReportModalProps> = ({ data, rolePrices, onClose }) => {
   if (!data) return null;
