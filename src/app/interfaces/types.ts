@@ -76,7 +76,6 @@ declare module '@/app/interfaces/types' {
   export interface ReportModalProps {
     data: ReportData;
     rolePrices: RolePrice;
-    onClose: () => void;
   }
 
   export interface TaskCardProps {

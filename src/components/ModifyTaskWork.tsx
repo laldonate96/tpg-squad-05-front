@@ -29,10 +29,10 @@ const ModifyTaskPopup: React.FC<ModifyTaskPopupProps> = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-md shadow-lg w-96">
-        <h2 className="text-xl font-bold text-black mb-4">Modify Task</h2>
-        <p className="text-gray-700 mb-4">Task: {taskName}</p>
+        <h2 className="text-xl font-bold text-black mb-4">Modificar tarea</h2>
+        <p className="text-gray-700 mb-4">Tarea: {taskName}</p>
         <label htmlFor="hours" className="block text-gray-800 mb-2">
-          Enter new number of hours:
+          Ingrese el nuevo numero de horas:
         </label>
         <input
           id="hours"
@@ -46,7 +46,7 @@ const ModifyTaskPopup: React.FC<ModifyTaskPopupProps> = ({
             className="bg-gray-300 hover:bg-gray-400 text-black py-2 px-4 rounded-md"
             onClick={onClose}
           >
-            Cancel
+            Cancelar
           </button>
           <button
             className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md"

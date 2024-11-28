@@ -94,7 +94,7 @@ const CalendarView = () => {
 
   const handleAddTaskWork = (date: string) => {
     const [day, month] = date.split('/');
-    const year = new Date().getFullYear();
+    const year = startDate.getFullYear();
     const formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
     setSelectedDate(formattedDate);
     setIsModalOpen(true);
@@ -290,11 +290,11 @@ const CalendarView = () => {
         />
       )}
       <DeleteConfirmation
-  isOpen={deleteConfirmation.isOpen}
-  onClose={() => setDeleteConfirmation({ isOpen: false, taskId: null, taskName: '' })}
-  onConfirm={confirmDelete}
-  taskName={deleteConfirmation.taskName}
-/>
+        isOpen={deleteConfirmation.isOpen}
+        onClose={() => setDeleteConfirmation({ isOpen: false, taskId: null, taskName: '' })}
+        onConfirm={confirmDelete}
+        taskName={deleteConfirmation.taskName}
+      />
     </div>
   );
 };

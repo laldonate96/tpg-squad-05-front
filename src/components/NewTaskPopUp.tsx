@@ -10,7 +10,8 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
 }) => {
   const resourceId = Cookies.get('resourceId') || '2e6ecd47-fa18-490e-b25a-c9101a398b6d';
   const [availableTasks, setAvailableTasks] = useState<Task[]>([]);
-  const [projects, setProjects] = useState<{ [key: string]: Project }>({});
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('');
   const [taskData, setTaskData] = useState<TaskData>({
     taskId: '',
     hours: '',
@@ -30,13 +31,10 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
       const response = await fetch('https://squad05-2024-2c.onrender.com/projects');
       if (!response.ok) throw new Error('Failed to fetch projects');
       const projectList = await response.json();
-      const projectMap = projectList.reduce((acc: { [key: string]: Project }, project: Project) => {
-        acc[project.id] = project;
-        return acc;
-      }, {});
-      setProjects(projectMap);
+      setProjects(projectList);
     } catch (err) {
       console.error('Error fetching projects:', err);
+      setError('Error loading projects. Please try again.');
     }
   };
 
@@ -56,7 +54,14 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
     }
   };
 
-  if (!isOpen) return null;
+  const filteredTasks = availableTasks.filter(
+    task => selectedProjectId ? task.proyectoId === selectedProjectId : true
+  );
+
+  const handleProjectChange = (projectId: string) => {
+    setSelectedProjectId(projectId);
+    setTaskData(prev => ({ ...prev, taskId: '' }));
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -76,14 +81,17 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
 
     onSubmit(submissionData);
     setTaskData({ taskId: '', hours: '' });
+    setSelectedProjectId('');
     onClose();
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-gray-700">Add Task Hours</h2>
+          <h2 className="text-xl font-bold text-gray-700">Añadir horas a la tarea</h2>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700"
@@ -102,13 +110,35 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label
+              htmlFor="projectId"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Elija un proyecto
+            </label>
+            <select
+              id="projectId"
+              value={selectedProjectId}
+              onChange={(e) => handleProjectChange(e.target.value)}
+              className="w-full p-2 border text-gray-500 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Todos los proyectos</option>
+              {projects.map((project) => (
+                <option key={project.id} value={project.id}>
+                  {project.nombre}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label
               htmlFor="taskId"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Select Task
+              Elija la tarea
             </label>
             {isLoading ? (
-              <div className="text-gray-500">Loading tasks...</div>
+              <div className="text-gray-500">Cargando tareas...</div>
             ) : (
               <select
                 id="taskId"
@@ -118,10 +148,10 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
                 className="w-full p-2 border text-gray-500 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               >
-                <option value="">Select a task</option>
-                {availableTasks.map((task) => (
+                <option value="">Seleccione una tarea</option>
+                {filteredTasks.map((task) => (
                   <option key={task.id} value={task.id}>
-                    {task.nombre} - Proyecto: {projects[task.proyectoId]?.nombre || task.proyectoId}
+                    {task.nombre}
                   </option>
                 ))}
               </select>
@@ -133,18 +163,19 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
               htmlFor="hours"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Hours
+              Horas
             </label>
             <input
               id="hours"
               type="number"
               name="hours"
               min="0"
+              max="12"
               step="1"
               value={taskData.hours}
               onChange={(e) => setTaskData(prev => ({ ...prev, hours: e.target.value }))}
               className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter hours"
+              placeholder="Añadir horas"
               required
             />
           </div>
@@ -155,13 +186,13 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
               onClick={onClose}
               className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              Cancel
+              Cancelar
             </button>
             <button
               type="submit"
               className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              Add Hours
+              Añadir horas
             </button>
           </div>
         </form>

@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
-import ReportModal from './ReportModal';
+import ReportModal from './ReportTable';
 import { Project, ReportData, Resource, RolePrice } from '../app/interfaces/types';
-import Cookies from 'js-cookie';
+import ReportTable from './ReportTable';
 
 
 export default function ReportsView() {
@@ -154,15 +154,8 @@ export default function ReportsView() {
     }
   };
 
-  const handleResourceSelection = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const resourceId = e.target.value;
-    if (!resourceId) return;
-    Cookies.set('resourceId', resourceId);
-    window.location.href = '/';
-  }
-
   return (
-    <>
+    <div className="space-y-6">
       <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-200">
         <div className="grid grid-cols-5 gap-6">
           <div>
@@ -192,11 +185,7 @@ export default function ReportsView() {
           <div>
             <label className="block text-sm text-black font-medium mb-2">Recursos</label>
             {selectedResources.length > 0 ? (
-              <select
-                className="w-full border rounded-md p-2"
-                onChange={handleResourceSelection}
-              >
-                <option value="">Ir a perfil</option>
+              <select className="w-full border rounded-md p-2">
                 {selectedResources.map(resource => (
                   <option key={resource.id} value={resource.id}>
                     {resource.nombre} {resource.apellido}
@@ -243,12 +232,11 @@ export default function ReportsView() {
       </div>
 
       {reportData && (
-        <ReportModal
+        <ReportTable
           data={reportData}
           rolePrices={rolePrices}
-          onClose={() => setReportData(null)}
         />
       )}
-    </>
+    </div>
   );
 }
