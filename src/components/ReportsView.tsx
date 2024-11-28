@@ -3,45 +3,6 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import ReportModal from './ReportModal';
 
-interface Project {
-  id: string;
-  nombre: string;
-}
-
-interface Resource {
-  id: string;
-  nombre: string;
-  apellido: string;
-}
-
-interface ReportData {
-  totalResources: number;
-  year: number;
-  totalHours: number;
-  resources: {
-    resourceId: string;
-    totalHours: number;
-    apellido: string;
-    monthlyHours: {
-      january: number;
-      february: number;
-      march: number;
-      april: number;
-      may: number;
-      june: number;
-      july: number;
-      august: number;
-      september: number;
-      october: number;
-      november: number;
-      december: number;
-    };
-    nombre: string;
-    dni: string;
-  }[];
-  projectId: string;
-}
-
 export default function ReportsView() {
   const [selectedProject, setSelectedProject] = useState<string>('');
   const [selectedResources, setSelectedResources] = useState<Resource[]>([]);
@@ -49,6 +10,9 @@ export default function ReportsView() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [totalHours, setTotalHours] = useState<number | null>(null);
   const [reportData, setReportData] = useState<ReportData | null>(null);
+  const [rolePrices, setRolePrices] = useState<RolePrice>({});
+  const [isLoadingPrices, setIsLoadingPrices] = useState(false);
+  const [priceError, setPriceError] = useState<string>('');
 
   const currentYear = new Date().getFullYear();
   const years = Array.from(
@@ -56,8 +20,11 @@ export default function ReportsView() {
     (_, i) => (currentYear - 10 + i).toString()
   ).reverse();
 
+  const SQUAD_5_API = 'https://squad05-2024-2c.onrender.com';
+  const SQUAD_11_API = 'https://squad11-2024-2c.onrender.com';
+
   useEffect(() => {
-    fetch(`https://squad05-2024-2c.onrender.com/projects`)
+    fetch(`${SQUAD_5_API}/projects`)
       .then(res => res.json())
       .then(data => {
         setProjects(data);
@@ -69,7 +36,7 @@ export default function ReportsView() {
 
   useEffect(() => {
     if (selectedProject) {
-      fetch(`https://squad05-2024-2c.onrender.com/projects/${selectedProject}/hours`)
+      fetch(`${SQUAD_5_API}/projects/${selectedProject}/hours`)
         .then(res => res.json())
         .then(data => {
           setTotalHours(data.totalHours);
@@ -85,7 +52,7 @@ export default function ReportsView() {
 
   useEffect(() => {
     if (selectedProject) {
-      fetch(`https://squad05-2024-2c.onrender.com/projects/${selectedProject}/resources`)
+      fetch(`${SQUAD_5_API}/projects/${selectedProject}/resources`)
         .then(res => res.json())
         .then(data => {
           setSelectedResources(data);
@@ -99,97 +66,176 @@ export default function ReportsView() {
     }
   }, [selectedProject]);
 
+  useEffect(() => {
+    const fetchRolePrices = async () => {
+      if (selectedResources.length === 0) {
+        setRolePrices({});
+        return;
+      }
+
+      setIsLoadingPrices(true);
+      setPriceError('');
+      const prices: RolePrice = {};
+
+      try {
+        await Promise.all(
+          selectedResources.map(async (resource) => {
+            try {
+              const response = await fetch(`${SQUAD_11_API}/api/role/${resource.rolId}`);
+
+              if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+              }
+
+              const data = await response.json();
+              prices[resource.rolId] = data.cuesta_hora;
+            } catch (error) {
+              console.warn(`Falling back to default price for role ${resource.rolId}`);
+              prices[resource.rolId] = getDefaultRolePrice(resource.rolId);
+            }
+          })
+        );
+
+        setRolePrices(prices);
+      } catch (error) {
+        console.error('Error fetching role prices:', error);
+        setPriceError('Unable to fetch role prices. Using default values.');
+
+        const defaultPrices: RolePrice = {};
+        selectedResources.forEach(resource => {
+          defaultPrices[resource.rolId] = getDefaultRolePrice(resource.rolId);
+        });
+        setRolePrices(defaultPrices);
+      } finally {
+        setIsLoadingPrices(false);
+      }
+    };
+
+    fetchRolePrices();
+  }, [selectedResources]);
+
+  const getDefaultRolePrice = (roleId: string): number => {
+    const defaultPrices: { [key: string]: number } = {
+      'developer': 50,
+      'senior': 75,
+      'manager': 100,
+    };
+
+    return defaultPrices[roleId] || 50;
+  };
+
   const handleGenerateReport = async () => {
     try {
-      const response = await fetch(`https://squad05-2024-2c.onrender.com/projects/${selectedProject}/resources/hours/${selectedYear}`, {
+      const response = await fetch(`${SQUAD_5_API}/projects/${selectedProject}/resources/hours/${selectedYear}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const data: ReportData = await response.json();
-      setReportData(data);
+
+      setReportData({
+        ...data,
+        resources: data.resources.map(resource => ({
+          ...resource,
+          rolId: selectedResources.find(r => r.id === resource.resourceId)?.rolId || ''
+        }))
+      });
     } catch (error) {
       console.error('Error generating report:', error);
+      alert('Error generating report. Please try again.');
     }
   };
 
   return (
     <>
-    <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-200">
-      <div className="grid grid-cols-5 gap-6">
-        <div>
-          <label className="block text-sm text-black font-medium mb-2">Proyectos</label>
-          <select
-            className="w-full border rounded-md p-2"
-            onChange={(e) => setSelectedProject(e.target.value)}
-            value={selectedProject}
-          >
-            <option value="">Seleccionar Proyecto</option>
-            {projects.map(project => (
-              <option key={project.id} value={project.id}>{project.nombre}</option>
-            ))}
-          </select>
-        </div>
+      <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-200">
+        <div className="grid grid-cols-5 gap-6">
+          <div>
+            <label className="block text-sm text-black font-medium mb-2">Proyectos</label>
+            <select
+              className="w-full border rounded-md p-2"
+              onChange={(e) => setSelectedProject(e.target.value)}
+              value={selectedProject}
+            >
+              <option value="">Seleccionar Proyecto</option>
+              {projects.map(project => (
+                <option key={project.id} value={project.id}>{project.nombre}</option>
+              ))}
+            </select>
+          </div>
 
-        <div>
-          <label className="block text-sm text-black font-medium mb-2">Horas Totales</label>
-          <div 
-            className="h-10 px-3 text-black py-2 border rounded-md flex items-center"
-            style={{ backgroundColor: '#e0f7fa' }}
-          >
-            {totalHours !== null ? `${totalHours}h` : '-'}
+          <div>
+            <label className="block text-sm text-black font-medium mb-2">Horas Totales</label>
+            <div
+              className="h-10 px-3 text-black py-2 border rounded-md flex items-center"
+              style={{ backgroundColor: '#e0f7fa' }}
+            >
+              {totalHours !== null ? `${totalHours}h` : '-'}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm text-black font-medium mb-2">Recursos</label>
+            {selectedResources.length > 0 ? (
+              <select className="w-full border rounded-md p-2">
+                {selectedResources.map(resource => (
+                  <option key={resource.id} value={resource.id}>
+                    {resource.nombre} {resource.apellido}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <div className="h-10 px-3 text-black py-2 border rounded-md flex items-center">
+                -
+              </div>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm text-black font-medium mb-2">Año</label>
+            <select
+              className="w-full border rounded-md p-2"
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+            >
+              <option value="">Seleccionar Año</option>
+              {years.map(year => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex items-end">
+            <button
+              className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 disabled:bg-gray-400"
+              onClick={handleGenerateReport}
+              disabled={!selectedProject || !selectedYear || isLoadingPrices}
+            >
+              {isLoadingPrices ? 'Cargando...' : 'Generar Reporte'}
+            </button>
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm text-black font-medium mb-2">Recursos</label>
-          {selectedResources.length > 0 ? (
-            <select className="w-full border rounded-md p-2">
-              {selectedResources.map(resource => (
-                <option key={resource.id} value={resource.id}>
-                  {resource.nombre} {resource.apellido}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <div className="h-10 px-3 text-black py-2 border rounded-md flex items-center">
-              -
-            </div>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm text-black font-medium mb-2">Año</label>
-          <select
-            className="w-full border rounded-md p-2"
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(e.target.value)}
-          >
-            <option value="">Seleccionar Año</option>
-            {years.map(year => (
-              <option key={year} value={year}>{year}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="flex items-end">
-          <button 
-            className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600"
-            onClick={handleGenerateReport}
-          >
-            Generar Reporte
-          </button>
-        </div>
+        {priceError && (
+          <div className="mt-4 p-2 bg-yellow-100 text-yellow-800 rounded">
+            {priceError}
+          </div>
+        )}
       </div>
-    </div>
 
-    {reportData && (
-      <ReportModal 
-        data={reportData} 
-        onClose={() => setReportData(null)} 
-      />
-    )}
+      {reportData && (
+        <ReportModal
+          data={reportData}
+          rolePrices={rolePrices}
+          onClose={() => setReportData(null)}
+        />
+      )}
     </>
   );
 }

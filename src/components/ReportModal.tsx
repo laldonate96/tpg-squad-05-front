@@ -1,44 +1,7 @@
 import React from 'react';
 import { X } from 'lucide-react';
 
-interface MonthlyHours {
-  january: number;
-  february: number;
-  march: number;
-  april: number;
-  may: number;
-  june: number;
-  july: number;
-  august: number;
-  september: number;
-  october: number;
-  november: number;
-  december: number;
-}
-
-interface Resource {
-  resourceId: string;
-  totalHours: number;
-  apellido: string;
-  monthlyHours: MonthlyHours;
-  nombre: string;
-  dni: string;
-}
-
-interface ReportData {
-  totalResources: number;
-  year: number;
-  totalHours: number;
-  resources: Resource[];
-  projectId: string;
-}
-
-interface ReportModalProps {
-  data: ReportData;
-  onClose: () => void;
-}
-
-const ReportModal: React.FC<ReportModalProps> = ({ data, onClose }) => {
+const ReportModal: React.FC<ReportModalProps> = ({ data, rolePrices, onClose }) => {
   if (!data) return null;
 
   const months: { key: keyof MonthlyHours; label: string }[] = [
@@ -56,6 +19,11 @@ const ReportModal: React.FC<ReportModalProps> = ({ data, onClose }) => {
     { key: 'december', label: 'Diciembre' }
   ];
 
+  const calculateCost = (hours: number, rolId: string) => {
+    const pricePerHour = rolePrices[rolId] || 0;
+    return hours * pricePerHour;
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-[90vh] overflow-auto">
@@ -65,7 +33,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ data, onClose }) => {
               <h2 className="text-2xl font-bold text-gray-800">Reporte de Horas - {data.year}</h2>
               <p className="text-gray-600">Total de Recursos: {data.totalResources} | Total de Horas: {data.totalHours}</p>
             </div>
-            <button 
+            <button
               onClick={onClose}
               className="p-2 hover:bg-gray-100 rounded-full transition-colors"
             >
@@ -98,11 +66,12 @@ const ReportModal: React.FC<ReportModalProps> = ({ data, onClose }) => {
                     </td>
                     {months.map(month => (
                       <td key={month.key} className="p-3 border text-center text-gray-700" style={{ backgroundColor: '#e0f7fa' }}>
-                        {resource.monthlyHours[month.key]}/{resource.monthlyHours[month.key] * 100}
+                        {resource.monthlyHours[month.key]}/
+                        {calculateCost(resource.monthlyHours[month.key], resource.rolId)}
                       </td>
                     ))}
                     <td className="p-3 border text-gray-700 text-center font-medium" style={{ backgroundColor: '#e0f7fa' }}>
-                      {resource.totalHours}/{resource.totalHours * 100}
+                      {resource.totalHours}/{calculateCost(resource.totalHours, resource.rolId)}
                     </td>
                   </tr>
                 ))}
