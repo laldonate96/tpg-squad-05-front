@@ -6,31 +6,15 @@ import ModifyTaskPopup from './ModifyTaskWork';
 import Cookies from 'js-cookie';
 import ProfileSelector from './ProfileSelector';
 
-interface Task {
-  id: number;
-  taskName: string;
-  projectName: string;
-  createdAt: string;
-  hours: number;
-}
-
-interface Resource {
-  id: string;
-  nombre: string;
-  apellido: string;
-  dni: string;
-  rolId: string;
-}
-
 const CalendarView = () => {
   const [resourceId, setResourceId] = useState(Cookies.get('resourceId') || '2e6ecd47-fa18-490e-b25a-c9101a398b6d');
   const [resources, setResources] = useState<Resource[]>([]);
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [tasks, setTasks] = useState<TaskWork[]>([]);
   const [startDate, setStartDate] = useState<Date>(new Date());
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [isModifyPopupOpen, setIsModifyPopupOpen] = useState(false);
-  const [taskToModify, setTaskToModify] = useState<Task | null>(null);
+  const [taskToModify, setTaskToModify] = useState<TaskWork | null>(null);
 
   useEffect(() => {
     fetch('https://squad05-2024-2c.onrender.com/resources')
@@ -124,7 +108,7 @@ const CalendarView = () => {
     }
   };
 
-  const handleModifyTask = (task: Task) => {
+  const handleModifyTask = (task: TaskWork) => {
     setTaskToModify(task);
     setIsModifyPopupOpen(true);
   };

@@ -1,31 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Cookies from 'js-cookie';
 
-interface Task {
-  id: string;
-  nombre: string;
-  proyectoId: string;
-}
-
-interface Project {
-  id: string;
-  nombre: string;
-}
-
-interface TaskData {
-  taskId: string;
-  hours: string;
-  createdAt?: string;
-  taskName?: string;
-}
-
-interface AddTaskModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  selectedDate: string | null;
-  onSubmit: (data: TaskData) => void;
-}
-
 const AddTaskModal: React.FC<AddTaskModalProps> = ({
   isOpen,
   onClose,
