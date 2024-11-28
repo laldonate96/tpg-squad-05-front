@@ -15,7 +15,7 @@ const DeleteConfirmation = ({ isOpen, onClose, onConfirm, taskName }: DeleteConf
       <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
         <h2 className="text-black font-semibold mb-4">¿Estás seguro?</h2>
         <p className="text-gray-600 mb-6">
-          Esta acción eliminará la tarea "{taskName}" y no se puede deshacer.
+          Esta acción eliminará la tarea {taskName} y no se puede deshacer.
         </p>
         <div className="flex justify-end gap-3">
           <button
