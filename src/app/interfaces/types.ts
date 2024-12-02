@@ -56,7 +56,7 @@ declare module '@/app/interfaces/types' {
   }
 
   export interface RolePrice {
-    [key: string]: number;
+    [roleId: string]: number;
   }
 
   export interface ReportData {
@@ -90,6 +90,22 @@ declare module '@/app/interfaces/types' {
     onClose: () => void;
     onConfirm: () => void;
     taskName: string;
+  }
+
+  export interface RoleCost {
+    roleId: string;
+    name: string;
+    experience: string;
+    costsPerHour: number[];
+  }
+
+  export interface MonthlyRolePrices {
+    [roleId: string]: number[];
+  }
+
+  export interface ReportTableProps {
+    data: ReportData;
+    rolePrices: MonthlyRolePrices;
   }
 }
 

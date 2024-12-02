@@ -1,8 +1,8 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { Project, ReportData, Resource, RolePrice } from '../app/interfaces/types';
-import ReportTable from './ReportTable';
 
+import { useEffect, useState } from 'react';
+import { Project, ReportData, Resource, MonthlyRolePrices, RoleCost } from '../app/interfaces/types';
+import ReportTable from './ReportTable';
 
 export default function ReportsView() {
   const [selectedProject, setSelectedProject] = useState<string>('');
@@ -11,9 +11,10 @@ export default function ReportsView() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [totalHours, setTotalHours] = useState<number | null>(null);
   const [reportData, setReportData] = useState<ReportData | null>(null);
-  const [rolePrices, setRolePrices] = useState<RolePrice>({});
+  const [rolePrices, setRolePrices] = useState<MonthlyRolePrices>({});
   const [isLoadingPrices, setIsLoadingPrices] = useState(false);
   const [priceError, setPriceError] = useState<string>('');
+  const [resourceError, setResourceError] = useState<string>('');
 
   const currentYear = new Date().getFullYear();
   const years = Array.from(
@@ -23,6 +24,15 @@ export default function ReportsView() {
 
   const SQUAD_5_API = 'https://squad05-2024-2c.onrender.com';
   const SQUAD_11_API = 'https://squad11-2024-2c.onrender.com';
+
+  const getDefaultRolePrice = (roleId: string): number => {
+    const defaultPrices: { [key: string]: number } = {
+      'developer': 50,
+      'senior': 75,
+      'manager': 100,
+    };
+    return defaultPrices[roleId] || 50;
+  };
 
   useEffect(() => {
     fetch(`${SQUAD_5_API}/projects`)
@@ -53,77 +63,76 @@ export default function ReportsView() {
 
   useEffect(() => {
     if (selectedProject) {
+      setResourceError('');
       fetch(`${SQUAD_5_API}/projects/${selectedProject}/resources`)
-        .then(res => res.json())
-        .then(data => {
-          setSelectedResources(data);
+        .then(async (res) => {
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
+          const data = await res.json();
+          if (Array.isArray(data) && data.length === 0) {
+            setResourceError('Este proyecto no tiene recursos asignados');
+            setSelectedResources([]);
+          } else {
+            setSelectedResources(data);
+            setResourceError('');
+          }
         })
         .catch(error => {
           console.error('Error fetching project resources:', error);
           setSelectedResources([]);
+          setResourceError('Este proyecto no tiene recursos asignados');
         });
     } else {
       setSelectedResources([]);
+      setResourceError('');
     }
   }, [selectedProject]);
 
   useEffect(() => {
     const fetchRolePrices = async () => {
-      if (selectedResources.length === 0) {
+      if (selectedResources.length === 0 || !selectedYear) {
         setRolePrices({});
         return;
       }
 
       setIsLoadingPrices(true);
       setPriceError('');
-      const prices: RolePrice = {};
+      const monthlyPrices: MonthlyRolePrices = {};
 
       try {
-        await Promise.all(
-          selectedResources.map(async (resource) => {
-            try {
-              const response = await fetch(`${SQUAD_11_API}/api/role/${resource.rolId}`);
+        const response = await fetch(`${SQUAD_11_API}/api/role/costs/${selectedYear}`);
 
-              if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-              }
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
-              const data = await response.json();
-              prices[resource.rolId] = data.cuesta_hora;
-            } catch (error) {
-              console.log(`Error fetching role price for role ${resource.rolId}:`, error);
-              prices[resource.rolId] = getDefaultRolePrice(resource.rolId);
-            }
-          })
-        );
+        const rolesData: RoleCost[] = await response.json();
 
-        setRolePrices(prices);
+        // Map the roles data to our prices format
+        rolesData.forEach(role => {
+          monthlyPrices[role.roleId] = role.costsPerHour;
+        });
+
+        setRolePrices(monthlyPrices);
       } catch (error) {
         console.error('Error fetching role prices:', error);
-        setPriceError('Este proyecto no tiene recursos asignados.');
+        setPriceError('Error al obtener los precios de los roles.');
 
-        const defaultPrices: RolePrice = {};
+        // Set default prices for each month
+        const defaultMonthlyPrices: MonthlyRolePrices = {};
         selectedResources.forEach(resource => {
-          defaultPrices[resource.rolId] = getDefaultRolePrice(resource.rolId);
+          defaultMonthlyPrices[resource.rolId] = Array(12).fill(getDefaultRolePrice(resource.rolId));
         });
-        setRolePrices(defaultPrices);
+
+        setRolePrices(defaultMonthlyPrices);
       } finally {
         setIsLoadingPrices(false);
       }
     };
 
     fetchRolePrices();
-  }, [selectedResources]);
-
-  const getDefaultRolePrice = (roleId: string): number => {
-    const defaultPrices: { [key: string]: number } = {
-      'developer': 50,
-      'senior': 75,
-      'manager': 100,
-    };
-
-    return defaultPrices[roleId] || 50;
-  };
+  }, [selectedResources, selectedYear]);
 
   const handleGenerateReport = async () => {
     try {
@@ -149,7 +158,7 @@ export default function ReportsView() {
       });
     } catch (error) {
       console.error('Error generating report:', error);
-      alert('Error generating report. Please try again.');
+      alert('Error al generar el reporte. Por favor intente nuevamente.');
     }
   };
 
@@ -216,21 +225,27 @@ export default function ReportsView() {
             <button
               className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 disabled:bg-gray-400"
               onClick={handleGenerateReport}
-              disabled={!selectedProject || !selectedYear || isLoadingPrices}
+              disabled={!selectedProject || !selectedYear || isLoadingPrices || resourceError !== ''}
             >
               {isLoadingPrices ? 'Cargando...' : 'Generar Reporte'}
             </button>
           </div>
         </div>
 
-        {priceError && (
+        {resourceError && (
+          <div className="mt-4 p-2 bg-yellow-100 text-yellow-800 rounded">
+            {resourceError}
+          </div>
+        )}
+
+        {priceError && !resourceError && (
           <div className="mt-4 p-2 bg-yellow-100 text-yellow-800 rounded">
             {priceError}
           </div>
         )}
       </div>
 
-      {reportData && (
+      {reportData && !resourceError && (
         <ReportTable
           data={reportData}
           rolePrices={rolePrices}
